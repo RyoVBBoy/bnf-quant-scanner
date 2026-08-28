@@ -6,7 +6,7 @@ from typing import Dict, List, Any, Tuple
 
 class BNFTradingScanner:
     """
-    BNF流・東証主力高流動性150銘柄 厳選スキャンエンジン
+    BNF流・東証主力高流動性銘柄 厳選スキャンエンジン
     """
     
     SECTOR_CONFIG: Dict[str, Dict[str, Any]] = {
@@ -22,12 +22,11 @@ class BNFTradingScanner:
         "新興グロース・サービス": {"threshold": -20.0, "category": "新興・グロース"},
         "医薬品": {"threshold": -8.0, "category": "ディフェンシブ"},
         "食料品・消費財": {"threshold": -7.0, "category": "ディフェンシブ"},
-        "陸運・海運・物流": {"threshold": -8.0, "category": "ディフェnsive"},
+        "陸運・海運・物流": {"threshold": -8.0, "category": "ディフェンシブ"},
         "電力・ガス・インフラ": {"threshold": -7.0, "category": "ディフェンシブ"},
         "小売・外食": {"threshold": -10.0, "category": "消費・ディフェンシブ"}
     }
     
-    # BNF氏が常時監視していた日経225・TOPIX Core30クラスの主力高流動性銘柄（一部抜粋）
     CORE_TARGETS: List[Dict[str, str]] = [
         {"code": "6920.T", "name": "レーザーテック", "sector": "半導体・電子部品"},
         {"code": "8035.T", "name": "東京エレクトロン", "sector": "半導体・電子部品"},
@@ -62,7 +61,7 @@ class BNFTradingScanner:
         {"code": "9501.T", "name": "東京電力HD", "sector": "電力・ガス・インフラ"}
     ]
 
-    def __init__(self, min_turnover_jpy: float = 500_000_000): # 売買代金5億円以上
+    def __init__(self, min_turnover_jpy: float = 500_000_000):
         self.min_turnover_jpy = min_turnover_jpy
 
     def fetch_market_context(self) -> Dict[str, Any]:
@@ -87,12 +86,11 @@ class BNFTradingScanner:
         except Exception:
             return {"nikkei_price": 0, "nikkei_kairi": 0.0, "nikkei_change": 0.0, "market_panic": False}
 
-    def run_pipeline((self) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+    def run_pipeline(self) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
         market_ctx = self.fetch_market_context()
         tickers = [item["code"] for item in self.CORE_TARGETS]
         meta_lookup = {item["code"]: item for item in self.CORE_TARGETS}
         
-        # 一括ダウンロードで処理を爆速化（約3〜5秒で完了）
         data = yf.download(tickers, period="3mo", interval="1d", group_by='ticker', threads=True)
         results = []
 
@@ -119,7 +117,6 @@ class BNFTradingScanner:
                 meta = meta_lookup[code]
                 sec_cfg = self.SECTOR_CONFIG.get(meta["sector"], {"threshold": -12.0})
                 
-                # BNFスコア計算（0〜100点）
                 score = 50.0 + (sec_cfg["threshold"] - kairi25) * 2.0
                 if vol_ratio >= 2.0: score += 15.0
                 if market_ctx["market_panic"]: score += 15.0
