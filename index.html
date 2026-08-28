@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BNF CORE AUTOMATION PREMIUM</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0b0e14;
+            --card-bg: #151a23;
+            --accent-color: #d000ff;
+            --text-color: #ffffff;
+            --text-sub: #8a99ad;
+            --border-color: #232b38;
+            --green-color: #00ff88;
+            --red-color: #ff4d4d;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: rgba(21, 26, 35, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            letter-spacing: 1px;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--green-color);
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title { font-size: 1.2rem; margin-bottom: 5px; }
+        .subtitle { font-size: 0.8rem; color: var(--text-sub); margin-bottom: 20px; }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .ai-banner {
+            background: linear-gradient(135deg, rgba(208, 0, 255, 0.15), rgba(0, 150, 255, 0.15));
+            border: 1px solid rgba(208, 0, 255, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .ai-banner-title { color: var(--accent-color); font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
+        .ai-banner-desc { font-size: 0.8rem; color: var(--text-sub); line-height: 1.4; }
+
+        .btn-primary {
+            width: 100%; background-color: var(--accent-color); color: white; border: none; padding: 14px;
+            border-radius: 10px; font-weight: bold; font-size: 0.95rem; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(208, 0, 255, 0.3); transition: opacity 0.2s;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-secondary {
+            width: 100%; background-color: transparent; color: var(--text-color);
+            border: 1px solid var(--border-color); padding: 12px; border-radius: 10px;
+            font-size: 0.85rem; margin-top: 10px; cursor: pointer; transition: 0.2s;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-secondary:hover { background-color: rgba(255,255,255,0.05); }
+
+        #scan-results-area { display: none; margin-top: 20px; }
+
+        .stock-card {
+            display: flex; justify-content: space-between; align-items: center;
+            background-color: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 12px 16px; margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        .stock-card:hover { transform: scale(1.02); border-color: rgba(208, 0, 255, 0.5); }
+        .stock-info .code { font-size: 0.75rem; color: var(--text-sub); }
+        .stock-info .name { font-weight: bold; font-size: 0.95rem; }
+        .stock-info .sector { font-size: 0.7rem; color: var(--accent-color); margin-top: 2px; }
+        .stock-metrics { text-align: right; }
+        .stock-metrics .score { font-size: 1.1rem; font-weight: bold; color: var(--green-color); }
+        .stock-metrics .kairi { font-size: 0.8rem; color: var(--red-color); }
+
+        /* 設定フォーム用スタイル */
+        .setting-group { margin-bottom: 15px; }
+        .setting-group label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px; }
+        .setting-group input[type="range"] { width: 100%; accent-color: var(--accent-color); }
+        
+        /* トグルスイッチ */
+        .toggle-switch { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
+        .toggle-label { font-size: 0.85rem; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
+            background-color: var(--card-bg); border-top: 1px solid var(--border-color);
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; color: var(--text-sub);
+            font-size: 0.7rem; gap: 4px; cursor: pointer; background: none; border: none; padding: 0; width: 20%;
+        }
+        .nav-item.active { color: var(--accent-color); }
+        .nav-item i { font-size: 1.1rem; transition: transform 0.2s; }
+        .nav-item.active i { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">BNF PREMIUM</div>
+        <div class="status-badge" id="status-indicator"><i class="fa-solid fa-circle fa-fade" style="font-size: 8px;"></i> AI LIVE</div>
+    </div>
+
+    <div class="container">
+        <!-- 1. 地合いタブ -->
+        <div id="tab-jiai" class="tab-content">
+            <h3 class="section-title">市場地合いモニタリング</h3>
+            <div class="subtitle">日経平均・パニック指数のリアルタイム分析</div>
+            <div class="card" id="jiai-card">
+                <div style="font-size: 0.9rem; color: var(--text-sub); text-align: center; padding: 20px 0;">
+                    <i class="fa-solid fa-chart-pie" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                    スキャンを実行すると最新の地合いデータが反映されます。
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 条件タブ (インタラクティブな設定画面に進化) -->
+        <div id="tab-joken" class="tab-content">
+            <h3 class="section-title">BNF フィルター設定</h3>
+            <div class="subtitle">セクター別スクリーニング閾値のカスタマイズ</div>
+            
+            <div class="card">
+                <div class="toggle-switch">
+                    <span class="toggle-label"><i class="fa-solid fa-robot"></i> 5分ごとの自動スキャン</span>
+                    <label class="switch"><input type="checkbox" id="auto-scan-toggle" onchange="toggleAutoScan()"><span class="slider"></span></label>
+                </div>
+                
+                <div style="margin-top: 15px; font-weight: bold; font-size: 0.9rem; margin-bottom: 15px; color: var(--accent-color);">【乖離率しきい値設定】</div>
+                
+                <div class="setting-group">
+                    <label><span>大型・バリュー</span> <span id="val-large">-10.0%</span></label>
+                    <input type="range" min="-30" max="0" step="0.5" value="-10" oninput="document.getElementById('val-large').innerText = this.value + '%'">
+                </div>
+                <div class="setting-group">
+                    <label><span>ハイテク・半導体</span> <span id="val-tech">-12.0%</span></label>
+                    <input type="range" min="-30" max="0" step="0.5" value="-12" oninput="document.getElementById('val-tech').innerText = this.value + '%'">
+                </div>
+                <div class="setting-group">
+                    <label><span>新興グロース</span> <span id="val-growth">-20.0%</span></label>
+                    <input type="range" min="-40" max="0" step="1" value="-20" oninput="document.getElementById('val-growth').innerText = this.value + '%'">
+                </div>
+                
+                <button class="btn-secondary" onclick="alert('設定をブラウザに保存しました。\n※現在はUIデモとして動作しています。')" style="margin-top: 20px; border-color: var(--accent-color); color: var(--accent-color);">
+                    <i class="fa-solid fa-save"></i> 設定を保存する
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. コアスキャンタブ -->
+        <div id="tab-scan" class="tab-content active">
+            <h3 class="section-title">コア銘柄スキャン（主力・高流動性株）</h3>
+            <div class="subtitle" id="scan-timestamp">最終スキャン: 未実行</div>
+
+            <div class="ai-banner">
+                <div class="ai-banner-title"><i class="fa-solid fa-brain"></i> BNF AI ロジック連携</div>
+                <div class="ai-banner-desc">東証の主力・高流動性銘柄を中心に、BNFロジック（25日線マイナス乖離）に合致する銘柄をAIがリアルタイムに抽出します。</div>
+            </div>
+
+            <!-- メインスキャンボタン -->
+            <button class="btn-primary" onclick="runScan()"><i class="fa-solid fa-satellite-dish"></i> コア銘柄をAIスキャン</button>
+
+            <!-- 結果エリア -->
+            <div id="scan-results-area">
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="btn-secondary" onclick="requestNotification()" style="flex: 1;"><i class="fa-solid fa-bell"></i> 通知許可</button>
+                    <button class="btn-secondary" onclick="exportCSV()" style="flex: 1;"><i class="fa-solid fa-file-csv"></i> CSV出力</button>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+                    <div style="font-weight: bold; font-size: 0.9rem; color: var(--accent-color);">【スキャン結果上位銘柄】</div>
+                    <div style="font-size: 0.7rem; color: var(--text-sub);">※スコア順</div>
+                </div>
+                <div id="results-list"></div>
+            </div>
+        </div>
+
+        <!-- 4. AI相場観タブ -->
+        <div id="tab-ai" class="tab-content">
+            <h3 class="section-title">Gemini AI 相場レポート</h3>
+            <div class="subtitle">AIによる本日の市場環境考察</div>
+            <div class="card" id="ai-report-card">
+                <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.6;" id="ai-report-text">
+                    <i class="fa-solid fa-robot" style="font-size: 1.5rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                    スキャン未実行です。「コア銘柄をAIスキャン」を実行すると、リアルタイムデータに基づくAI分析が生成されます。
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. シグナルタブ -->
+        <div id="tab-signal" class="tab-content">
+            <h3 class="section-title">高スコア検出銘柄</h3>
+            <div class="subtitle">BNFスコア60点以上の高確度シグナル</div>
+            <div id="high-score-list">
+                <div class="card" style="font-size: 0.85rem; color: var(--text-sub); text-align: center; padding: 20px 0;">
+                    <i class="fa-solid fa-tower-broadcast" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                    スキャン実行後に強いシグナルがここに集約されます。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 下部ナビゲーション -->
+    <div class="bottom-nav">
+        <button class="nav-item" onclick="switchTab('jiai', this)"><i class="fa-solid fa-globe"></i><span>地合い</span></button>
+        <button class="nav-item" onclick="switchTab('joken', this)"><i class="fa-solid fa-sliders"></i><span>条件設定</span></button>
+        <button class="nav-item active" onclick="switchTab('scan', this)"><i class="fa-solid fa-satellite-dish"></i><span>スキャン</span></button>
+        <button class="nav-item" onclick="switchTab('ai', this)"><i class="fa-solid fa-brain"></i><span>AI相場観</span></button>
+        <button class="nav-item" onclick="switchTab('signal', this)"><i class="fa-solid fa-chart-line"></i><span>シグナル</span></button>
+    </div>
+
+    <script>
+        let lastScanData = null; // CSV出力用のデータ保存用
+        let autoScanInterval = null;
+
+        // タブ切り替え
+        function switchTab(tabName, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            element.classList.add('active');
+        }
+
+        // ブラウザプッシュ通知の許可要求
+        function requestNotification() {
+            if (!("Notification" in window)) {
+                alert("このブラウザはデスクトップ通知をサポートしていません。");
+            } else if (Notification.permission === "granted") {
+                alert("すでに通知は許可されています！");
+            } else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(function (permission) {
+                    if (permission === "granted") {
+                        new Notification("BNF PREMIUM", { body: "通知が有効になりました。強いシグナルを検知した際にお知らせします。" });
+                    }
+                });
+            }
+        }
+
+        // 強いシグナルが出た際にデスクトップ通知を送る
+        function sendSignalNotification(topStock) {
+            if ("Notification" in window && Notification.permission === "granted" && topStock && topStock.bnf_score >= 60) {
+                new Notification("🚨 BNF 高スコア検知", {
+                    body: `${topStock.name} (${topStock.code}) がスコア ${topStock.bnf_score}点を記録しました！`
+                });
+            }
+        }
+
+        // 自動スキャンのトグル
+        function toggleAutoScan() {
+            const isEnabled = document.getElementById('auto-scan-toggle').checked;
+            if (isEnabled) {
+                alert("5分ごとの自動スキャンを有効にしました。");
+                autoScanInterval = setInterval(runScan, 5 * 60 * 1000); // 5分ごと
+                document.getElementById('status-indicator').innerHTML = '<i class="fa-solid fa-circle fa-fade" style="font-size: 8px;"></i> AUTO LIVE';
+            } else {
+                clearInterval(autoScanInterval);
+                document.getElementById('status-indicator').innerHTML = '<i class="fa-solid fa-circle fa-fade" style="font-size: 8px;"></i> AI LIVE';
+            }
+        }
+
+        // CSVエクスポート機能
+        function exportCSV() {
+            if (!lastScanData || lastScanData.results.length === 0) {
+                alert("スキャン結果がありません。先にスキャンを実行してください。");
+                return;
+            }
+            
+            // CSVヘッダー
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "銘柄コード,銘柄名,セクター,現在値,25日乖離率(%),BNFスコア\n";
+            
+            // データ行
+            lastScanData.results.forEach(row => {
+                csvContent += `${row.code},${row.name},${row.sector},${row.price},${row.kairi25},${row.bnf_score}\n`;
+            });
+            
+            // ダウンロード処理
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `BNF_Scan_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // メインのスキャン実行関数
+        async function runScan() {
+            const btn = document.querySelector('.btn-primary');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> スキャン実行中...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/scan');
+                const data = await response.json();
+                lastScanData = data; // CSV用に保持
+
+                const now = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                document.getElementById('scan-timestamp').innerText = `最終更新: ${now} (${data.results.length}銘柄検証)`;
+
+                // 1. スキャン結果エリアを表示
+                document.getElementById('scan-results-area').style.display = 'block';
+
+                // 2. 結果リストの生成
+                const resultsContainer = document.getElementById('results-list');
+                resultsContainer.innerHTML = '';
+
+                data.results.forEach(stock => {
+                    const item = document.createElement('div');
+                    item.className = 'stock-card';
+                    item.innerHTML = `
+                        <div class="stock-info">
+                            <div class="code">${stock.code}</div>
+                            <div class="name">${stock.name}</div>
+                            <div class="sector">${stock.sector} | 株価: ¥${stock.price.toLocaleString()}</div>
+                        </div>
+                        <div class="stock-metrics">
+                            <div class="score">${stock.bnf_score}点</div>
+                            <div class="kairi">25日乖離: ${stock.kairi25}%</div>
+                        </div>
+                    `;
+                    resultsContainer.appendChild(item);
+                });
+
+                // 3. 地合いタブの更新
+                const market = data.market;
+                document.getElementById('jiai-card').innerHTML = `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px; padding-bottom:8px; border-bottom: 1px solid var(--border-color);">
+                        <span style="color:var(--text-sub);">日経平均株価</span>
+                        <strong style="font-size:1.1rem;">¥${market.nikkei_price.toLocaleString()}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px; padding-bottom:8px; border-bottom: 1px solid var(--border-color);">
+                        <span style="color:var(--text-sub);">前日比</span>
+                        <strong style="color:${market.nikkei_change < 0 ? 'var(--red-color)' : 'var(--green-color)'}">${market.nikkei_change > 0 ? '+' : ''}${market.nikkei_change}%</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px; padding-bottom:8px; border-bottom: 1px solid var(--border-color);">
+                        <span style="color:var(--text-sub);">25日線乖離率</span>
+                        <strong style="color:${market.nikkei_kairi < 0 ? 'var(--red-color)' : 'var(--green-color)'}">${market.nikkei_kairi > 0 ? '+' : ''}${market.nikkei_kairi}%</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:var(--text-sub);">相場パニック判定</span>
+                        <strong style="background: ${market.market_panic ? 'rgba(255, 77, 77, 0.2)' : 'rgba(0, 255, 136, 0.2)'}; 
+                                       color: ${market.market_panic ? 'var(--red-color)' : 'var(--green-color)'}; 
+                                       padding: 4px 10px; border-radius: 12px; font-size: 0.85rem;">
+                            ${market.market_panic ? 'パニック状態（買い優位）' : '正常推移'}
+                        </strong>
+                    </div>
+                `;
+
+                // 4. AI相場観レポートの更新
+                let marketTrend = market.nikkei_kairi > 0 ? "上昇基調" : "調整局面";
+                document.getElementById('ai-report-text').innerHTML = `
+                    <p style="margin-top:0;">本日時点の日経平均乖離率は <strong>${market.nikkei_kairi}%</strong> となっており、相場全体は${marketTrend}にあります。</p>
+                    <p>検証対象の高流動性 ${data.results.length} 銘柄中、最も逆張りシグナルが高い銘柄は <strong>${data.results[0]?.name || '該当なし'} (スコア: ${data.results[0]?.bnf_score || 0}点)</strong> です。</p>
+                    <div style="padding: 10px; background: rgba(255,255,255,0.05); border-left: 3px solid var(--accent-color); border-radius: 4px; margin-top:10px;">
+                    ${market.market_panic ? '🚨 <strong>AIアラート:</strong> 市場全体で急落が発生しており、連れ安による絶好の反発狙いタイミングが接近しています。高スコア銘柄の板情報を確認してください。' : '💡 <strong>AIアドバイス:</strong> 現在の地合いはパニック状態にはありません。個別セクターごとの押し目を慎重に狙うフェーズです。'}
+                    </div>
+                `;
+
+                // 5. シグナルタブの更新（高スコア順）
+                const signalContainer = document.getElementById('high-score-list');
+                signalContainer.innerHTML = '';
+                const highScores = data.results.filter(s => s.bnf_score >= 60);
+
+                if (highScores.length === 0) {
+                    signalContainer.innerHTML = '<div class="card" style="color:var(--text-sub); text-align:center;">現在、強いシグナル（60点以上）が出ている銘柄はありません。</div>';
+                } else {
+                    highScores.forEach(stock => {
+                        const item = document.createElement('div');
+                        item.className = 'stock-card';
+                        item.style.borderColor = 'rgba(0, 255, 136, 0.5)';
+                        item.innerHTML = `
+                            <div class="stock-info">
+                                <div class="code">${stock.code}</div>
+                                <div class="name">${stock.name}</div>
+                            </div>
+                            <div class="stock-metrics">
+                                <div class="score">${stock.bnf_score}点</div>
+                                <div class="kairi">乖離: ${stock.kairi25}%</div>
+                            </div>
+                        `;
+                        signalContainer.appendChild(item);
+                    });
+                    // トップ銘柄をデスクトップ通知（許可されている場合）
+                    sendSignalNotification(highScores[0]);
+                }
+
+            } catch (error) {
+                alert('データ取得に失敗しました。');
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-satellite-dish"></i> コア銘柄をAIスキャン';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
